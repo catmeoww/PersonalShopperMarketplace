@@ -415,6 +415,17 @@ Headless-browser workers in isolated pool, residential proxies, per-account sess
 - **California ADMT (2026).** Disclose automated purchasing decisions to users.
 - **SNAP/EBT.** Out of scope for MVP. Partner-only path post-launch.
 
+### 14.4 ClawShop Guarantee (purchase protection)
+ClawShop refunds any wrong-item, wrong-size, wrong-brand, or unauthorized purchase up to **$200 per incident, $500/yr per household**, within 24 hours, no investigation required. Rationale: without this, every incident is adversarial; with it, the first bad purchase becomes a brand-building moment. Budget the expected cost (~0.3% of GMV based on industry wrong-item rates) as CAC, not as loss. Required for ClawShop+ subscribers; available as paid add-on on free tier.
+
+### 14.5 Kill-switch & stop-the-world
+- **Global kill-switch**: single operator action, audit-logged, freezes all outgoing spend authorizations and approval-request issuance fleet-wide. RTO < 5 minutes. Tested monthly.
+- **Per-user pause**: self-serve, reachable from SMS reply "PAUSE" or in-chat. Instant.
+- **Per-merchant block**: if a retailer exhibits compromise signals, operator can freeze all spend to that merchant without a deploy.
+
+### 14.6 Per-approver identity binding
+SMS approvals are bound to **approver identity**, not household phone number. Each household approver enrolls a short PIN (free tier) or device-bound WebAuthn (ClawShop+). An approval ≥ $100 or for a new merchant requires the PIN/WebAuthn step even if sent to a device already in-session. Closes the kid-replies-Y and shared-device-takeover failure modes.
+
 ---
 
 ## 15. Observability & Evals
@@ -463,9 +474,24 @@ Prompt injection in product titles/reviews; memory poisoning via crafted user me
 
 ### 16.1 Pricing hypothesis
 - **Free tier:** 1 active watch, manual approvals, basic reorder.
-- **ClawShop+ at $7.99/mo or $69/yr:** unlimited watches, auto-reorder with spend caps, coupon stacking, household sharing (up to 4 seats), priority deal alerts.
-- **Stacked revenue:** retailer affiliate commissions (Amazon 1-4%, Target/Walmart via Impact, Instacart Connect referral). Target 50/50 subscription/affiliate by month 18.
-- **Critically:** never upcharge user for affiliate. Show net-of-affiliate price, or rebate. Avoid the Honey 2024 trust crisis.
+- **ClawShop+ at $14.99/mo or $129/yr:** unlimited watches, auto-reorder with spend caps, coupon stacking, household sharing (up to 4 seats), priority deal alerts, purchase guarantee (see §14.4).
+- **Why $14.99, not $7.99:** ICP (HHI $85-175K, $40-80/mo in grocery savings) pays $14.99 without friction. At $14.99, LTV:CAC clears 4-5× versus 2-3× at $7.99. $7.99 under-prices the value and doesn't cover CS load on money-touching products.
+- **Stacked revenue, but don't plan on it:** retailer affiliate commissions (Amazon 1-4%, Target 1-8%, Walmart via Impact 1-4%, Kroger <1%). Realistic month-18 mix is **70 sub / 30 affiliate**, NOT 50/50. Amazon and Walmart will revoke or throttle our affiliate tags as our volume grows (same playbook they ran on Jet, Honey, Capital One Shopping).
+- **Critically:** never upcharge user for affiliate. Show net-of-affiliate price, or rebate. Affiliate purity is the trust moat post-Honey/PayPal 2024 exposé — costs ~30% of gross affiliate take vs. scummy version; keep it and market it hard.
+
+### 16.1a Unit economics (realistic)
+| Line | Value | Source |
+|---|---|---|
+| Blended CAC (Reddit + TikTok + PR) | $45-70 fully loaded | Marketing, Y1 blended |
+| Subscription GPM | ~70% at $14.99 | After Stripe, SMS, infra |
+| COGS per household/month (floor) | $1.20-2.00 LLM + $0.30 virtual card + $0.40 infra = **~$2** | IC #1 model routing; IC #2 vault |
+| CS load allowance | 4-10× non-money-product baseline | Risk register §ops |
+| Affiliate per $400/mo assisted GMV | $10-11/mo blended, trending to zero as Amazon/Walmart pull APIs | Marketing analysis |
+| 25-mo customer lifetime | at 4% monthly churn | Industry benchmark for this ICP |
+| LTV at $14.99 | ~$260 | Sub + residual affiliate |
+| LTV:CAC | 4-5× at $14.99, 2-3× at $7.99 | Marketing |
+
+Break-even per household lands month 4-5 at $14.99; month 9+ at $7.99. **$14.99 is the only price that works at our CS cost reality.**
 
 ### 16.2 Go-to-market — first 1,000 users
 - Seed r/couponing, r/Frugal, r/Costco, r/Target, BuyNothing Facebook groups with a "deal-hunter leaderboard."
@@ -485,18 +511,56 @@ Prompt injection in product titles/reviews; memory poisoning via crafted user me
 | EBT/SNAP-aware routing | Walmart only | No | Partial | V2 |
 | Open to developer extensions | No | No | API only | **Yes (OpenClaw plugins)** |
 
+### 16.4 Business viability — retail industry perspective
+
+#### Does retail want this? — split, hostile at the top
+| Stakeholder | Stance | Rationale |
+|---|---|---|
+| **Walmart** | Hostile | Sparky + agentic checkout in pilot; ~18-month tolerance window before throttle/ToS action (Jet / Honey / Capital One Shopping playbook) |
+| **Amazon** | Actively hostile | ToS already prohibits automated purchasing; sued Nimble; Rufus going native checkout 2026. Plan for affiliate-tag revocation |
+| **Target** | Friendly | Distant #3 in digital, needs incremental demand, small Roundel ad business — good early API partner |
+| **Kroger** | Friendly | Boost membership stalling, thinnest digital GMV of the majors. Will take our calls |
+| **Costco** | Irrelevant | No API, no affiliate worth anything, allergic to third parties. Skip |
+| **Instacart** | Frenemy | Will take Connect referrals now; Instacart-native agent on roadmap. Renting runway |
+| **CPG brands (P&G, Unilever, Kraft Heinz)** | Terrified, 2-yr sales cycle | Agents collapse shelves into spec sheets — kills brand equity. Eventually they'll pay us for agent-facing placement; org structure not ready in 2026 |
+| **Payment rails (Visa, Mastercard, Stripe)** | Allies | Visa Intelligent Commerce, Mastercard Agent Pay, Stripe+OpenAI ACP all want agent volume — clean win |
+| **Retail media networks (Walmart Connect, Amazon Ads, KPM)** | Won't partner | Agents torch their highest-margin sponsored-product inventory. Assume zero cooperation |
+
+**Net verdict:** two biggest players structurally against; #3-#5 tier plus payment rails pulling for us.
+
+#### Does the business model work? — lifestyle business yes, venture-scale only with act-two
+- **Subscription ($14.99/mo)** — LTV:CAC clears 4-5×, break-even month 4-5. $7.99 was under-priced for the CS load.
+- **Affiliate durability is a mirage** — 50/50 mix by month 18 is not plausible. Real trajectory: 70/30 sub-heavy, with affiliate trending to zero as Amazon/Walmart pull APIs. Do not build the model on affiliate durability.
+- **COGS floor ~$2/household/month** (Haiku-routed LLM + Stripe Issuing + infra).
+- **Honey-purity moat** — affiliate-disclosed, no upcharge, no coupon-swap scummery. Costs 30% of affiliate take; buys the trust moat the post-Honey ICP demands.
+- **No network effects** — linear SaaS grind. Consumer ceiling: $20-40M ARR.
+- **Defensible wedge** — cross-retailer neutrality + user-owned portable memory. Walmart structurally cannot honestly recommend Kroger.
+- **Venture-scale exit:** B2B agent infrastructure white-label to retailers (see §17 V4). Consumer business is the proof-of-ops for the B2B sale.
+
+**Verdict:** clears lifestyle bar comfortably. Clears venture-scale only if we commit to the B2B act-two in year 2.
+
 ---
 
 ## 17. Roadmap
 
-### V1 — MVP (8 weeks)
-Chat intake (web + SMS), 3 retailers (Walmart, Kroger, Amazon-handoff), cross-retailer comparison, approval gates, price-drop watchlist, Shelf memory UX, 3-button recovery, virtual-card vault, weekly digest.
+### V1 — MVP (8 weeks, consumer)
+Chat intake (web + SMS), 3 retailers (Walmart, Kroger, Amazon-handoff), cross-retailer comparison, approval gates, price-drop watchlist, Shelf memory UX, 3-button recovery, virtual-card vault, weekly digest, **ClawShop Guarantee** (purchase protection, §14.4), **global kill-switch**, **deterministic allergen/age-gated denylist**.
 
-### V2 — 90 days
-Auto-reorder staples with spend caps (T3 tier default), household sharing, Target + 2 local grocers, rejection-learning loop, browser extension (price capture + "watch this"), Instacart Connect if partnership lands.
+### V2 — 90 days (consumer + partnership)
+Auto-reorder staples with spend caps (T3 tier default), household sharing with per-approver identity binding, Target + 2 local grocers, rejection-learning loop, browser extension (price capture + "watch this"), Instacart Connect if partnership lands. **Target: sign data/API partnership with at least one of Walmart / Kroger / Target** — turns retailer-hostility from existential to managed.
 
-### V3 — 180 days
-Recipe-to-cart, native Tier A checkout via stored payment where APIs allow, pro-buyer mode with bulk pricing, opt-in Tier C browser-automation checkout, Agentic Commerce Protocol adoption, smart-speaker surface (read-only digest, no voice-approval for spend).
+### V3 — 180 days (consumer maturity)
+Recipe-to-cart, native Tier A checkout via stored payment where APIs allow, pro-buyer mode with bulk pricing, opt-in Tier C browser-automation checkout (with dedicated on-call rotation), Agentic Commerce Protocol adoption, smart-speaker surface (read-only digest, no voice-approval for spend).
+
+### V4 — Act Two: B2B agent infrastructure (12-18 months)
+White-label the ClawShop stack (agent runtime, memory subsystem, approval service, virtual-card vault) for retailers who need agentic-commerce but can't build it in-house — **Kroger, Target, mid-tier grocers, drug chains, specialty retailers**. Rationale: consumer path caps at $20-40M ARR (Marketing verdict); B2B is where venture-scale lives. The retailers Walmart and Amazon are about to crush with in-house agents are our ICP for B2B.
+
+**Why we can win B2B:** (a) we'll have 12-18 months of production-scale agentic-commerce ops experience; (b) cross-retailer neutrality in the consumer product proves we can be trusted as a neutral infrastructure vendor; (c) OpenClaw as the underlying primitive gives us an open-source story that closed-source incumbents (Sparky, Rufus) can't match.
+
+**Signal to trigger:** consumer metrics plateau at $8-15M ARR AND at least one Tier-2 retailer signals appetite in beta discussions.
+
+### V5 — Portable agent rights (speculative, 24+ months)
+Push the "your data, your memory" pillar to its logical conclusion: portable agent identity across retailers and agents, via the Agentic Commerce Protocol or successor. Positioned as the "HTTP of agent shopping."
 
 ---
 
