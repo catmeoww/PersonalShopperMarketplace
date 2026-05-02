@@ -201,7 +201,7 @@ Adversarial pre-mortem produced 25 ranked failure modes. Full register in `risks
 | R5 | Affiliate economics evaporate | 4 × 4 | Amazon/Walmart revoke tags |
 
 ### 7.1 Consumer AI graveyard lessons
-- **Novelty ≠ habit.** D1 is easy; D30 kills. Grocery has a weekly trigger (Sunday replenishment) — exploit ruthlessly.
+- **Novelty ≠ habit.** D1 is easy; D30 kills. Grocery has a weekly trigger (Sunday replenishment) — exploit ruthlessly. The **Sunday Ritual** (§6.4) is how ClawShop anchors to this trigger: a predictable weekly cart proposal at the same time every week, like a calendar invite users are glad to receive.
 - **Demo-product gap is brand-fatal.** 7% task failure rate feels like 70% because failures are conspicuous (wrong item arrived) while successes are invisible (you got eggs). Budget for 99%+ task success.
 - **Users don't want autonomy, they want leverage.** Operator's lukewarm reception shows people don't trust agents unsupervised on money. The approval UX is the product.
 - **Horizontal agent infra is a talent-acquisition outcome, not an IPO.** Adept, Fixer, Inflection, Magic all sold for team. Don't stake the business on OpenClaw-as-platform exiting.
@@ -256,6 +256,7 @@ PM owns these tripwires. Any one breaching triggers a Sev-2 review.
 | Signal | Tripwire | Implied risk |
 |---|---|---|
 | D30 retention | < 30% | Retention cliff (R1) |
+| **Sunday Ritual completion** | **< 50% sustained in weeks 2-4** | **Habit formation failure — leading indicator, fires before D30 (R1)** |
 | Second-order completion (week 8) | < 40% | Novelty ≠ habit |
 | SMS approval open rate | < 25% at week 3 | Engagement collapse |
 | Retailer session success | < 85% over 7d | Retailer hostility (R2) |
@@ -271,9 +272,10 @@ PM owns these tripwires. Any one breaching triggers a Sev-2 review.
 ## 10. What Would Flip Us Fully Bullish
 
 - **Signed data/API partnership with ≥ 1 of Walmart / Kroger / Target** before public launch — neutralizes R2.
-- **D30 retention > 55% and 3+ approved orders/month/user** in a 500-user closed beta — proves habit, not novelty (R1).
+- **Sunday Ritual completion > 60% and D14 retention > 45%** in a 200-user closed beta — proves habit formation in the first two weeks, not just first-week activation (R1). Sunday Ritual completion is the leading indicator of D30; it tells you by day 10 whether you have a habit product or a novelty.
+- **D30 retention > 55% and 3+ approved orders/month/user** in a 500-user closed beta — confirms the habit signal above at the D30 horizon (R1).
 - **Gross margin per order > 35% at current model costs, no affiliate** — proves unit econ at $14.99 alone (R15).
-- **Non-paid distribution wedge with k > 0.5** — parenting-app embed, creator partnership CAC < $15, or viral referral (R25).
+- **Non-paid distribution wedge with k > 0.5** — parenting-app embed, creator partnership CAC < $15, or Savings Ledger referral mechanic converting at ≥ 15% share-to-signup (R25).
 
 ---
 
