@@ -76,6 +76,17 @@ Women 32-45, HHI $85-175K, 2+ kids or eldercare, suburban, already splits purcha
 | **Time-to-approval p50** | seconds from push to user decision | < 90s | < 60s |
 | **Order placement success** | successful placements / attempted checkouts | ≥ 95% | ≥ 98% |
 
+### 4.1a Habit Loop Metrics
+
+| Metric | Definition | MVP Target | 90-day Target |
+|---|---|---|---|
+| **Sunday Ritual completion** | % of active users who approve or edit the weekly Sunday cart proposal | 50% | 65% |
+| **D14 retention** | % of activated users with an approved action in week 2 | 45% | 60% |
+| **Savings Ledger share rate** | % of MAU who share their monthly savings card | 5% | 12% |
+| **Referral activation rate** | % of referred sign-ups who complete onboarding within 7 days | 30% | 45% |
+
+Sunday Ritual completion is the leading indicator of D30 retention. If it falls below 50% in week 2, that is a Sev-2 signal regardless of activation numbers.
+
 **Guardrail metrics (never compromise):**
 - Allergy-retrieval miss rate = 0.
 - Unauthorized-spend incidents = 0 (any bypass of the Approval Service is a Sev-1).
@@ -91,7 +102,9 @@ Women 32-45, HHI $85-175K, 2+ kids or eldercare, suburban, already splits purcha
 - **Cross-retailer price comparison** on a single list (delivered cost, not sticker price).
 - **Long-term memory:** dietary, allergies (pinned), brands, sizes, household size, delivery address, cadence.
 - **Action Approval checkpoint** before any cart submission or subscription change.
-- **One autonomous behavior:** price-drop watcher on user watchlist (max 20 SKUs).
+- **One autonomous behavior:** price-drop watcher on user watchlist (max 5 SKUs in MVP; expands to 20 via referral mechanic).
+- **Sunday Ritual:** weekly proposed-cart digest delivered in the user's Sunday morning window (7-10 AM, user-set); one-tap approve / edit / skip; silence never ships.
+- **Savings Ledger:** running household savings counter (approved spend vs. single-retailer full price); shareable monthly card; referral unlock — share your savings card to expand watchlist from 5 to 20 SKUs.
 - **"The Shelf"** memory UX: inspect, edit, delete, export, freeze.
 - **Recovery flow:** 3-button (Return / Keep+credit / Keep+update-memory).
 - **Virtual cards** via Stripe Issuing; no PAN in our systems.
@@ -118,7 +131,8 @@ Women 32-45, HHI $85-175K, 2+ kids or eldercare, suburban, already splits purcha
 3. User reviews a 10-item "Is this you?" card — toggles **Keep / Drop / Fix**.
 4. Two contextual follow-ups (household size, dietary flags).
 5. Agent proposes a **watchlist**, not a shopping list: "I'll watch these. Nothing buys itself yet."
-6. **Exit state:** ~15 memory atoms committed, zero purchases authorized.
+6. User sets their **Sunday Ritual window** (7, 8, 9, or 10 AM local).
+7. **Exit state:** ~15 memory atoms committed, Sunday window set, zero purchases authorized. **Shopping is gated until Shelf is confirmed** — no cart proposals until ≥ 15 atoms committed and at least one watchlist item is active.
 
 ### 6.2 Proactive approval flow ("milk at Target")
 1. Watcher detects price drop within user preference window.
@@ -131,11 +145,32 @@ Women 32-45, HHI $85-175K, 2+ kids or eldercare, suburban, already splits purcha
 6. Post-commit: receipt card logs decision and reasoning trail ("why" affordance).
 
 ### 6.3 Recovery flow (wrong item ordered)
+
 1. User: "You got the wrong laundry pods."
 2. Agent replies with exact memory + rule used: "I chose Tide Free & Gentle based on your March note about sensitive skin."
 3. Three one-tap actions: **Return + refund** / **Keep + credit** / **Keep + update memory**.
 4. If memory error: surface the bad atom, offer **Delete** or **Rewrite**.
 5. Single-line apology. No groveling. Autonomy dial drops one notch; restored after 3 successful orders.
+
+### 6.4 Sunday Ritual (weekly habit anchor)
+The primary recurring touchpoint. Designed to be expected, brief, and low-friction — like a standing calendar invite the user is glad to receive.
+
+1. Every Sunday in the user's window (7-10 AM local, user-set at onboarding), ClawShop assembles a proposed weekly cart from memory atoms + active watchlist + prior order cadence.
+2. Digest card delivered via SMS + web push: line-item view with retailer allocation, total cost, vs-last-week delta. Example: "Your week: 11 items, $78.20 across Kroger + Amazon. Diapers moved from Target — $3.40 cheaper at Kroger this week."
+3. **One-tap options:** SEND (approve all) / EDIT (open Shelf) / SKIP (nothing ships this week).
+4. Silence = nothing ships. No countdown timers, no urgency nudges, no guilt pings.
+5. On SEND: carts queued per retailer; approval gates fire per §12 policy (any cart exceeding threshold triggers individual approval per retailer, not a single all-or-nothing).
+6. Post-settlement: **Savings Ledger** increments by the week's savings vs. single-retailer full-price equivalent.
+7. **Failure mode:** if ClawShop cannot assemble a meaningful cart (fewer than 5 items with confidence, or watchlist is empty), it sends: "Nothing to propose this week. Reply ADD to tell me what to watch." Does not send empty proposals.
+
+### 6.5 Savings Ledger
+A persistent household savings counter — the primary sharing and referral surface.
+
+1. Displayed on the main screen and in every Sunday Ritual digest: "ClawShop has saved your household **$X** since [join date] — **$Y** this month."
+2. Savings calculated as: actual approved spend vs. equivalent single-retailer full-price basket (Kroger shelf price used as baseline; methodology disclosed in UI).
+3. Monthly savings card: auto-generated image, shareable to Instagram Stories, iMessage, and SMS. Designed to be readable as a screenshot. Includes referral link.
+4. **Referral mechanic:** a referred user who completes onboarding → both parties' watchlist expands from 5 to 20 SKUs. No cash, no subscription discount — the unlock is functional and directly relevant to the product.
+5. Savings are net of affiliate commissions. We never inflate the number by hiding affiliate take. Affiliate-purity rule: disclosed, never upcharged, never inflated.
 
 ---
 
@@ -143,7 +178,7 @@ Women 32-45, HHI $85-175K, 2+ kids or eldercare, suburban, already splits purcha
 
 ### 7.1 Intake & intent
 - Accept free-text requests over web chat, iMessage/SMS, email reply, and web form paste (e.g., recipe URL).
-- Classify intent: `chat`, `watcher_wake`, `webhook`, `scheduled_reorder`, `approval_reply`.
+- Classify intent: `chat`, `watcher_wake`, `webhook`, `scheduled_reorder`, `approval_reply`, `sunday_ritual`.
 - Respond with a structured proposal (cart) or clarifying question — never silently act without user-visible state.
 
 ### 7.2 Memory
@@ -198,7 +233,7 @@ Women 32-45, HHI $85-175K, 2+ kids or eldercare, suburban, already splits purcha
 | **Retailer call latency** | p95 < 2s (Tier A/B APIs), < 12s (Tier C browser) |
 | **Order placement success** | ≥ 98% for Tier A/B |
 | **Availability** | 99.5% for gateway + approval service in MVP |
-| **Cost per turn** | chat ≤ $0.04, watcher-wake ≤ $0.005, webhook ≤ $0.01, reorder ≤ $0.02 |
+| **Cost per turn** | chat ≤ $0.04, watcher-wake ≤ $0.005, webhook ≤ $0.01, reorder ≤ $0.02, sunday-ritual ≤ $0.03 per user |
 | **Cost per watched item** | ≤ $0.02/day steady-state |
 | **Security** | PCI scope minimized; vault-only PAN; PII encrypted at rest and in transit |
 | **Privacy** | CCPA/CPRA + GDPR compliant; data export + delete on request |
@@ -544,7 +579,7 @@ Break-even per household lands month 4-5 at $14.99; month 9+ at $7.99. **$14.99 
 ## 17. Roadmap
 
 ### V1 — MVP (8 weeks, consumer)
-Chat intake (web + SMS), 3 retailers (Walmart, Kroger, Amazon-handoff), cross-retailer comparison, approval gates, price-drop watchlist, Shelf memory UX, 3-button recovery, virtual-card vault, weekly digest, **ClawShop Guarantee** (purchase protection, §14.4), **global kill-switch**, **deterministic allergen/age-gated denylist**.
+Chat intake (web + SMS), 3 retailers (Walmart, Kroger, Amazon-handoff), cross-retailer comparison, approval gates, price-drop watchlist (5-SKU cap), Shelf memory UX, 3-button recovery, virtual-card vault, **Sunday Ritual** (§6.4 — weekly proposed-cart digest, primary habit anchor), **Savings Ledger** (§6.5 — household savings counter + referral mechanic), **ClawShop Guarantee** (purchase protection, §14.4), **global kill-switch**, **deterministic allergen/age-gated denylist**.
 
 ### V2 — 90 days (consumer + partnership)
 Auto-reorder staples with spend caps (T3 tier default), household sharing with per-approver identity binding, Target + 2 local grocers, rejection-learning loop, browser extension (price capture + "watch this"), Instacart Connect if partnership lands. **Target: sign data/API partnership with at least one of Walmart / Kroger / Target** — turns retailer-hostility from existential to managed.
@@ -617,9 +652,9 @@ Push the "your data, your memory" pillar to its logical conclusion: portable age
 
 ## 20. Appendix — Interface Surfaces (ranked for MVP)
 
-1. **SMS / iMessage** — universal, no install, works for Ron. Ship first.
-2. **Web chat** — richer cards, Shelf UI.
-3. **Email weekly digest** — low-friction oversight, "here's what I'm planning, here's what I did."
+1. **SMS / iMessage** — universal, no install, works for Ron. Sunday Ritual and approval responses are SMS-native. Ship first.
+2. **Web chat + Savings Ledger dashboard** — richer cards, Shelf UI, running savings counter, shareable monthly card.
+3. **Sunday Ritual digest (SMS + email)** — weekly proposed cart with one-tap approve / edit / skip; upgraded from "recap" to "proposal." Primary habit anchor.
 4. **Browser extension** (V2) — price-drop capture, "watch this" on any retailer page.
 5. **Mobile native app** (V3+) — defer until web + SMS + email prove trust.
 6. **Smart speaker** (V3+) — read-only digest, never voice-approval for spend.
