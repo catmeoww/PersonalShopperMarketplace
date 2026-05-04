@@ -18,7 +18,21 @@ boundaries.
 
 ## Run
 
+Requires **Python ≥ 3.11**.
+
+### Quick start (Makefile)
+
 ```bash
+make install    # creates .venv and installs clawshop + dev deps
+make test       # runs the full pytest suite (37 tests)
+make demo       # interactive end-to-end demo — type Y at the approval prompt
+make demo-auto  # same demo, auto-answering Y (good for CI / smoke checks)
+```
+
+### Manual install
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
 # Stub mode — no Anthropic API key needed:
@@ -30,6 +44,9 @@ LLM_MODE=live ANTHROPIC_API_KEY=sk-... python -m clawshop demo
 # Tests:
 pytest -q
 ```
+
+The demo prompts for approval (`Y` / `N` / `LATER`) on each retailer cart.
+Type `Y` to proceed; silence times out to `denied` per PRD §12.4.
 
 ## What the demo shows
 
