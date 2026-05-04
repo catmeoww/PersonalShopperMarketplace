@@ -20,25 +20,19 @@ boundaries.
 
 Requires **Python ≥ 3.11**.
 
-### Quick start (Makefile)
-
-```bash
-make install    # creates .venv and installs clawshop + dev deps
-make test       # runs the full pytest suite (37 tests)
-make demo       # interactive end-to-end demo — type Y at the approval prompt
-make demo-auto  # same demo, auto-answering Y (good for CI / smoke checks)
-```
-
 ### Manual install
 
 ```bash
+sudo apt install python3
+sudo apt install python3.13-venv
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
-# Stub mode — no Anthropic API key needed:
+# Pick a mode
+## A) Stub mode — no Anthropic API key needed:
 LLM_MODE=stub python -m clawshop demo
 
-# Live mode — exercises real model routing per PRD §9.4:
+## B) Live mode — exercises real model routing per PRD §9.4:
 LLM_MODE=live ANTHROPIC_API_KEY=sk-... python -m clawshop demo
 
 # Tests:
